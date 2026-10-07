@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5 my-auto text-center">
+    <div class="container py-5">
+        <div class="display-1 fw-bold text-danger mb-2">403</div>
+        <h2 class="fw-bold mb-3">Access Denied</h2>
+        <p class="text-secondary mb-4 max-w-500 mx-auto">
+            You do not have permission to access this resource. Administrator privileges are required.
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary rounded-pill px-4 py-2">
+                <i class="bi bi-grid me-2"></i> User Dashboard
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                <i class="bi bi-house-door me-2"></i> Homepage
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

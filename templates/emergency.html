@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!--
+  MediGuide AI - Emergency Contacts Template (emergency.html)
+  ------------------------------------------------------------
+  Purpose: UI placeholder for national emergency hotlines, ambulance services, and medical aid with breadcrumbs.
+-->
+<section class="py-5">
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Emergency Contacts</li>
+            </ol>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="max-w-700 mx-auto text-center mb-5">
+            <span class="badge bg-danger-soft text-danger rounded-pill px-3 py-2 mb-2 fw-semibold">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Urgent Assistance
+            </span>
+            <h1 class="fw-bold display-6">Emergency Contacts</h1>
+            <p class="text-secondary">Immediate access to national emergency services, ambulance dispatch, and crisis lines.</p>
+        </div>
+
+        <!-- Emergency Hotlines Grid -->
+        <div class="row g-4 max-w-700 mx-auto">
+            <div class="col-12 col-md-6">
+                <div class="card border-danger border-2 shadow-sm rounded-4 p-4 text-center bg-white h-100">
+                    <div class="fs-1 text-danger mb-2"><i class="bi bi-telephone-outbound-fill"></i></div>
+                    <h4 class="fw-bold mb-1">Ambulance Dispatch</h4>
+                    <p class="text-secondary small mb-3">24/7 Medical Emergency Response</p>
+                    <a href="tel:911" class="btn btn-danger rounded-pill px-4 fw-bold">Call 911 / 112</a>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100">
+                    <div class="fs-1 text-warning mb-2"><i class="bi bi-shield-exclamation"></i></div>
+                    <h4 class="fw-bold mb-1">Poison Control Center</h4>
+                    <p class="text-secondary small mb-3">Toxic Exposure & Chemical Guidance</p>
+                    <a href="tel:18002221222" class="btn btn-outline-warning text-dark rounded-pill px-4 fw-bold">Call Poison Control</a>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-info-square text-primary me-2"></i> Important Emergency Reminder</h5>
+                    <p class="text-secondary small mb-0">
+                        If you or someone around you is experiencing life-threatening symptoms (chest pain, severe shortness of breath, sudden numbness or severe trauma), call your local emergency phone number immediately. Do not rely solely on online tools during critical emergencies.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

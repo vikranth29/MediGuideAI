@@ -1,0 +1,92 @@
+# =============================================================================
+# MediGuide AI – Continuous Integration Workflow
+# =============================================================================
+# Triggers on every push to any branch and on every pull request targeting
+# the main branch.  Both the lint step and the test step must pass; if either
+# fails the workflow is marked as failed and the PR cannot be merged.
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]          # all branches – catch issues early
+  pull_request:
+    branches: ["main", "master"]
+
+# Cancel any in-progress run for the same branch/PR when a new commit is pushed.
+# Saves CI minutes and keeps the queue clean.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Lint & Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false          # run all matrix entries even if one fails
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      # ------------------------------------------------------------------
+      # 1. Check out source code
+      # ------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------
+      # 2. Set up the requested Python version
+      # ------------------------------------------------------------------
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          # Cache pip's download cache between runs – speeds up installs
+          # significantly when requirements.txt hasn't changed.
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      # ------------------------------------------------------------------
+      # 3. Install dependencies
+      #    requirements.txt includes: Flask, gunicorn, pytest, pytest-mock,
+      #    flake8, and all other project dependencies.
+      # ------------------------------------------------------------------
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ------------------------------------------------------------------
+      # 4. Lint with flake8
+      #    Configuration lives in setup.cfg [flake8] so rules are identical
+      #    between CI and local development.
+      #    The workflow fails immediately if flake8 exits non-zero.
+      # ------------------------------------------------------------------
+      - name: Lint with flake8
+        run: |
+          # --count  : print total error count at the end
+          # --show-source  : print the offending source line for each error
+          # --statistics   : print a summary table of error codes
+          flake8 . --count --show-source --statistics
+
+      # ------------------------------------------------------------------
+      # 5. Run tests with pytest
+      #    - Uses a minimal .env so Flask config initialises without secrets.
+      #    - The ML pickle files are part of the repo, so the import chain
+      #      works without any extra setup.
+      #    - pytest exits non-zero on any failure → workflow step fails.
+      # ------------------------------------------------------------------
+      - name: Run tests with pytest
+        env:
+          # Provide a throwaway secret so Flask doesn't raise on startup
+          SECRET_KEY: "ci-test-secret-key-not-used-in-production"
+          FLASK_DEBUG: "False"
+          # Use an in-memory-style temp path; the CI runner's /tmp is writable
+          DATABASE_URL: "sqlite:////tmp/mediguide_ci_test.db"
+          SQLALCHEMY_DATABASE_URI: "sqlite:////tmp/mediguide_ci_test.db"
+          # Leave GEMINI_API_KEY unset – tests mock all external API calls
+        run: |
+          pytest tests/ -v --tb=short

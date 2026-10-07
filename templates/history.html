@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-5 bg-light-gradient min-vh-100">
+<div class="container py-3">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4 reveal">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Medical History</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="text-center mb-5 reveal">
+        <span class="section-badge section-badge-primary">
+            <i class="bi bi-clock-history"></i> Health Records
+        </span>
+        <h1 class="section-title mt-2">Medical History</h1>
+        <p class="section-subtitle">
+            Review all your previous AI symptom analyses and download detailed PDF reports.
+        </p>
+    </div>
+
+    <!-- Table Card -->
+    <div class="history-table-wrapper reveal reveal-delay-1">
+
+        <!-- Table Header -->
+        <div class="history-table-header d-flex align-items-center gap-3">
+            <i class="bi bi-journal-medical fs-4"></i>
+            <div>
+                <h4 class="mb-0 fw-bold">Prediction Records</h4>
+                <small class="opacity-75">All your symptom analysis history</small>
+            </div>
+            {% if predictions %}
+            <div class="ms-auto">
+                <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-semibold">
+                    {{ predictions | length }} Record{{ 's' if predictions | length != 1 else '' }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Table Body -->
+        <div class="table-responsive">
+            <table class="table table-styled table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-calendar3 me-1 text-muted"></i>Date</th>
+                        <th><i class="bi bi-list-check me-1 text-muted"></i>Symptoms</th>
+                        <th><i class="bi bi-virus me-1 text-muted"></i>Disease</th>
+                        <th><i class="bi bi-capsule me-1 text-muted"></i>Medicine</th>
+                        <th><i class="bi bi-file-earmark me-1 text-muted"></i>Report</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if predictions %}
+                        {% for item in predictions %}
+                        <tr>
+                            <td>
+                                <span class="text-muted small">
+                                    {{ item.prediction_date.strftime('%d %b %Y') }}<br>
+                                    <span style="font-size:.75rem;">{{ item.prediction_date.strftime('%H:%M') }}</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-secondary small" style="max-width:200px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ item.symptoms }}">
+                                    {{ item.symptoms }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                                      style="background:rgba(37,99,235,.1);color:var(--blue-500);">
+                                    <i class="bi bi-virus me-1"></i>{{ item.disease }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                                      style="background:rgba(13,148,136,.1);color:#0d9488;">
+                                    {{ item.medicine }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('download_report', prediction_id=item.id) }}"
+                                   class="btn btn-sm btn-gradient-primary rounded-pill px-3 fw-semibold">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i>Download
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div style="width:80px;height:80px;border-radius:50%;background:rgba(37,99,235,.07);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:2.5rem;color:var(--blue-500);">
+                                    <i class="bi bi-journal-x"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">No Medical History Found</h5>
+                                <p class="text-muted mb-4">
+                                    Start using the Symptom Checker to generate your first AI prediction.
+                                </p>
+                                <a href="{{ url_for('symptom_checker') }}"
+                                   class="btn btn-gradient-primary rounded-pill px-5 fw-semibold">
+                                    <i class="bi bi-heart-pulse me-2"></i>Go to Symptom Checker
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- Bottom note -->
+    {% if predictions %}
+    <div class="text-center mt-4 reveal">
+        <p class="text-muted small">
+            <i class="bi bi-shield-check text-success me-1"></i>
+            Your health records are stored securely and are only accessible to you.
+        </p>
+    </div>
+    {% endif %}
+
+</div>
+</div>
+{% endblock %}

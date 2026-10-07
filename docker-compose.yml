@@ -1,0 +1,84 @@
+# =============================================================================
+# MediGuide AI – Docker Compose
+# =============================================================================
+# Runs the Flask application via gunicorn in a production-like setup:
+#   • Reads all secrets/config from a .env file (not baked into the image).
+#   • Mounts the SQLite database file as a named volume so data survives
+#     container restarts and image rebuilds.
+#   • Restarts automatically unless explicitly stopped.
+#
+# Usage:
+#   docker compose up -d          # start in background
+#   docker compose logs -f web    # stream live logs
+#   docker compose down           # stop (data volume is preserved)
+#   docker compose down -v        # stop AND delete the database volume
+# =============================================================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Build the runtime target (default); the builder stage is an intermediate.
+      target: runtime
+
+    image: mediguide-ai:latest
+
+    container_name: mediguide_web
+
+    # Restart automatically unless explicitly stopped with `docker compose down`
+    restart: unless-stopped
+
+    # Load every KEY=VALUE from .env into the container's environment.
+    # The .env file is NOT copied into the image – it is only read at runtime.
+    env_file:
+      - .env
+
+    # Override any DATABASE_URL from .env so gunicorn always writes to the
+    # mounted volume path, regardless of what the developer set locally.
+    environment:
+      DATABASE_URL: "sqlite:////app/database/mediguide.db"
+      SQLALCHEMY_DATABASE_URI: "sqlite:////app/database/mediguide.db"
+      FLASK_DEBUG: "False"
+
+    ports:
+      # Host port 5000 → container port 5000.
+      # Change the left side (e.g. "8080:5000") to use a different host port.
+      - "5000:5000"
+
+    volumes:
+      # Named volume – Docker manages the host path; data persists across
+      # container restarts and image rebuilds.
+      - mediguide_db:/app/database
+
+    # Optional: expose the port to other compose services (e.g. a future nginx proxy)
+    # but NOT to the host; the `ports` mapping above already handles host access.
+    expose:
+      - "5000"
+
+    # Limit resource usage so the container doesn't monopolise the host
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          memory: 128M
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+
+# Named volume declaration – Docker creates and manages the storage location.
+# The actual database file lives at <volume_mount>/mediguide.db inside the container.
+volumes:
+  mediguide_db:
+    driver: local

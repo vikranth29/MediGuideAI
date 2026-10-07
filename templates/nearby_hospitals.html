@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<!-- Leaflet CSS from cdnjs -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
+<style>
+    /* Map Container Styling */
+    #hospitalMap {
+        height: 480px;
+        width: 100%;
+        border-radius: var(--radius-lg, 20px);
+        box-shadow: var(--shadow-md, 0 4px 16px rgba(37,99,235,.08));
+        border: 1px solid var(--slate-200, #e2e8f0);
+        z-index: 1;
+    }
+
+    /* User Marker Pin & Beacon Pulse */
+    .custom-user-marker-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .user-marker-dot {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border: 3px solid #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+    }
+    .user-marker-pulse {
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: rgba(37, 99, 235, 0.35);
+        animation: marker-pulse-anim 2s infinite ease-out;
+        z-index: -1;
+    }
+    @keyframes marker-pulse-anim {
+        0% { transform: scale(0.6); opacity: 0.9; }
+        100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* Hospital Marker Pin */
+    .custom-hospital-marker-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .hospital-marker-pin {
+        width: 32px;
+        height: 38px;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #ffffff;
+    }
+    .hospital-marker-pin i {
+        transform: rotate(45deg);
+        font-size: 15px;
+    }
+
+    /* Card Hover Micro-interactions */
+    .hospital-card {
+        transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+    .hospital-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg, 0 12px 40px rgba(37,99,235,.12)) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!--
+  MediGuide AI - Nearby Hospitals Template (nearby_hospitals.html)
+  -----------------------------------------------------------------
+  Purpose: Interactive map & directory to locate emergency care,
+  specialty hospitals, and clinics using OpenStreetMap Overpass & Nominatim.
+-->
+<section class="py-5">
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Nearby Hospitals</li>
+            </ol>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="max-w-700 mx-auto text-center mb-5">
+            <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 mb-2 fw-semibold">
+                <i class="bi bi-geo-alt-fill me-1"></i> Medical Facility Locator
+            </span>
+            <h1 class="fw-bold display-6">Find Nearby Hospitals</h1>
+            <p class="text-secondary">Locate emergency centers, multi-specialty hospitals, and healthcare facilities near you.</p>
+        </div>
+
+        <!-- Search Bar with Location & Address Fallback -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 max-w-700 mx-auto bg-white">
+            <form id="hospitalSearchForm" class="row g-3">
+                <div class="col-12 col-md-7">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" id="addressInput" class="form-control bg-light border-start-0" placeholder="Enter city, landmark, or street...">
+                    </div>
+                </div>
+                <div class="col-12 col-md-5 d-flex gap-2">
+                    <button type="submit" id="searchBtn" class="btn btn-primary rounded-pill px-3 flex-grow-1 fw-semibold">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+                    <button type="button" id="useLocationBtn" class="btn btn-outline-primary rounded-pill px-3 d-flex align-items-center gap-1 fw-semibold" title="Detect your current location">
+                        <i class="bi bi-crosshair"></i>
+                        <span class="d-none d-sm-inline">Use my location</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Dynamic Status / Spinner Alert -->
+        <div id="statusSpinner" class="text-center py-4 d-none">
+            <div class="spinner-border text-primary" style="width: 2.5rem; height: 2.5rem;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-secondary mt-2 mb-0 fw-medium" id="statusMessage">Searching for nearby hospitals...</p>
+        </div>
+
+        <!-- Error Alert Container -->
+        <div id="errorAlert" class="alert alert-danger alert-dismissible fade show max-w-700 mx-auto rounded-3 shadow-sm d-none" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+                <span id="errorMessage">An unexpected error occurred.</span>
+            </div>
+        </div>
+
+        <!-- Results Section (Map + Results List) -->
+        <div id="resultsSection" class="mt-4 d-none">
+            <!-- Origin Meta Bar -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <div class="text-muted small fw-medium" id="originLabel">
+                    <i class="bi bi-geo-fill text-primary me-1"></i> Showing hospitals near your selected area
+                </div>
+                <span class="badge bg-primary rounded-pill px-3 py-2 fw-semibold" id="resultsCount">0 hospitals found</span>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div class="mb-5">
+                <div id="hospitalMap"></div>
+            </div>
+
+            <!-- Empty State UI -->
+            <div id="emptyState" class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-4 d-none">
+                <div class="fs-1 text-muted mb-3"><i class="bi bi-geo-alt-slash"></i></div>
+                <h4 class="fw-bold text-navy-800 mb-2">No Hospitals Found</h4>
+                <p class="text-secondary max-w-700 mx-auto mb-3">
+                    No hospitals found within 5km — try a different location or check your spelling in the search bar.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('emergency') }}" class="btn btn-outline-danger rounded-pill px-4 btn-sm fw-semibold">
+                        <i class="bi bi-telephone-plus me-1"></i> Emergency Hotlines
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hospital Cards Grid -->
+            <div>
+                <h4 class="fw-bold text-navy-800 mb-3">
+                    <i class="bi bi-building-check text-primary me-2"></i> Medical Facilities List
+                </h4>
+                <div id="hospitalsList" class="row g-4">
+                    <!-- Hospital cards rendered dynamically by hospital-map.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS from cdnjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- Hospital Map Controller JS -->
+<script src="{{ url_for('static', filename='js/hospital-map.js') }}"></script>
+{% endblock %}

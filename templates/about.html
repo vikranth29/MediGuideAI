@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-light-gradient">
+
+    <!-- ── Hero Banner ──────────────────────────────────────────────── -->
+    <section class="py-5" style="background:var(--gradient-hero);border-bottom:1px solid rgba(37,99,235,.08);">
+        <div class="container py-4 text-center reveal">
+            <span class="section-badge section-badge-primary mb-4">
+                <i class="bi bi-info-circle-fill"></i> About MediGuide AI
+            </span>
+            <h1 class="section-title display-5">
+                Empowering Patients with<br>
+                <span class="text-primary-gradient">Intelligent Health Insights</span>
+            </h1>
+            <p class="section-subtitle mx-auto mt-3">
+                MediGuide AI is a final-year project that demonstrates how modern web architectures
+                and artificial intelligence can assist individuals in understanding health symptoms.
+            </p>
+        </div>
+    </section>
+
+    <!-- ── Mission Card ─────────────────────────────────────────────── -->
+    <section class="py-5 bg-white">
+        <div class="container py-3">
+            <div class="mission-card p-5 reveal">
+                <div class="row align-items-center g-4 position-relative" style="z-index:1;">
+                    <div class="col-lg-7">
+                        <span class="section-badge" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.25);">
+                            <i class="bi bi-bullseye"></i> Our Mission
+                        </span>
+                        <h2 class="fw-bold text-white mt-3 mb-3" style="font-size:2rem;">
+                            Making Healthcare Accessible for Everyone
+                        </h2>
+                        <p class="text-white-50 lh-lg mb-0" style="font-size:1.05rem;">
+                            We believe that health information should be immediate, clear, and accessible to all.
+                            MediGuide AI bridges the gap between technology and medical awareness by combining
+                            structured medical knowledge with a user-friendly AI interface.
+                        </p>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="row g-3">
+                            {% set items = [
+                                ('bi-shield-check-fill','Secure & Private','Your health data stays safe with end-to-end security.'),
+                                ('bi-lightning-charge-fill','Instant Analysis','AI-driven results in seconds, not hours.'),
+                                ('bi-globe','Always Available','24 / 7 access across all devices.'),
+                                ('bi-people-fill','User-Centric','Designed for patients, not just professionals.')
+                            ] %}
+                            {% for icon, title, desc in items %}
+                            <div class="col-6">
+                                <div class="p-3 rounded-3 h-100" style="background:rgba(255,255,255,.1);backdrop-filter:blur(8px);">
+                                    <i class="bi {{ icon }} text-white fs-4 mb-2 d-block"></i>
+                                    <h6 class="fw-bold text-white mb-1" style="font-size:.85rem;">{{ title }}</h6>
+                                    <p class="text-white-50 mb-0" style="font-size:.75rem;">{{ desc }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Technology Stack ─────────────────────────────────────────── -->
+    <section class="py-5 bg-light-gradient">
+        <div class="container py-3">
+
+            <div class="text-center mb-5 reveal">
+                <span class="section-badge section-badge-primary">
+                    <i class="bi bi-layers-fill"></i> Technology
+                </span>
+                <h2 class="section-title mt-2">Built with Modern Tech</h2>
+                <p class="section-subtitle">A robust stack powering MediGuide AI from server to screen.</p>
+            </div>
+
+            <div class="row g-4 mb-5">
+                {% set stack = [
+                    ('bi-code-slash','Python Flask','Backend Framework','#2563eb','rgba(37,99,235,.1)'),
+                    ('bi-palette2','Bootstrap 5','Frontend UI','#16a34a','rgba(22,163,74,.1)'),
+                    ('bi-filetype-js','JavaScript','Client Logic','#ca8a04','rgba(202,138,4,.1)'),
+                    ('bi-database-fill','SQLite','Database','#7c3aed','rgba(124,58,237,.1)'),
+                    ('bi-cpu-fill','Scikit-learn','ML Model','#0d9488','rgba(13,148,136,.1)'),
+                    ('bi-file-earmark-pdf-fill','ReportLab','PDF Reports','#dc2626','rgba(220,38,38,.1)')
+                ] %}
+                {% for icon, name, role, color, bg in stack %}
+                <div class="col-6 col-md-4 col-lg-2 reveal" style="--i:{{ loop.index }};">
+                    <div class="text-center p-4 rounded-4 border h-100 bg-white"
+                         style="transition:all .35s cubic-bezier(.22,1,.36,1);border-color:{{ color }}22 !important;"
+                         onmouseover="this.style.transform='translateY(-8px)';this.style.boxShadow='0 16px 40px {{ color }}22';"
+                         onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="mb-3 mx-auto d-flex align-items-center justify-content-center rounded-3"
+                             style="width:56px;height:56px;background:{{ bg }};font-size:1.6rem;color:{{ color }};">
+                            <i class="bi {{ icon }}"></i>
+                        </div>
+                        <h6 class="fw-bold mb-1" style="font-size:.88rem;">{{ name }}</h6>
+                        <p class="text-muted mb-0" style="font-size:.75rem;">{{ role }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── How It Works ────────────────────────────────────────────── -->
+    <section class="py-5 bg-white">
+        <div class="container py-3">
+            <div class="text-center mb-5 reveal">
+                <span class="section-badge section-badge-teal">
+                    <i class="bi bi-diagram-3-fill"></i> Workflow
+                </span>
+                <h2 class="section-title mt-2">How MediGuide AI Works</h2>
+            </div>
+            <div class="row g-4 position-relative">
+                <!-- Connector line (desktop) -->
+                <div class="d-none d-md-block" style="position:absolute;top:50px;left:calc(16.67% + 40px);right:calc(16.67% + 40px);height:2px;background:linear-gradient(90deg,var(--blue-500),var(--medical-teal));opacity:.2;z-index:0;"></div>
+
+                {% set steps = [
+                    ('bi-person-fill','1','Input Symptoms','You describe your symptoms in plain language through the intuitive symptom checker interface.','rgba(37,99,235,.1)','#2563eb'),
+                    ('bi-cpu-fill','2','AI Processing','Our ML model (Random Forest + NLP) analyses your input against 132+ disease patterns.','rgba(13,148,136,.1)','#0d9488'),
+                    ('bi-clipboard2-check-fill','3','Get Guidance','Receive a detailed report with likely conditions, recommended medicines, and next steps.','rgba(139,92,246,.1)','#7c3aed')
+                ] %}
+                {% for icon, step, title, desc, bg, color in steps %}
+                <div class="col-md-4 text-center reveal reveal-delay-{{ loop.index }}" style="position:relative;z-index:1;">
+                    <div class="d-flex align-items-center justify-content-center mx-auto mb-4 rounded-3"
+                         style="width:72px;height:72px;background:{{ bg }};font-size:2rem;color:{{ color }};border:3px solid {{ color }}22;">
+                        <i class="bi {{ icon }}"></i>
+                    </div>
+                    <span class="badge rounded-pill px-3 py-2 mb-3 fw-bold" style="background:{{ bg }};color:{{ color }};">Step {{ step }}</span>
+                    <h5 class="fw-bold mb-2">{{ title }}</h5>
+                    <p class="text-secondary small">{{ desc }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Back to Home ────────────────────────────────────────────── -->
+    <div class="py-4 text-center bg-light-gradient reveal">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary rounded-pill px-5 fw-semibold me-3">
+            <i class="bi bi-house-door me-2"></i>Back to Home
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-gradient-primary rounded-pill px-5 fw-semibold">
+            Open Dashboard <i class="bi bi-speedometer2 ms-2"></i>
+        </a>
+    </div>
+
+</div>
+{% endblock %}

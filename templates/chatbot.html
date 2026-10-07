@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+/* Page-specific overrides */
+.chat-wrapper { min-height: 680px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light-gradient min-vh-100">
+<div class="container py-3">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">AI Chatbot</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4 align-items-start">
+
+        <!-- ── Sidebar ───────────────────────────────────────────────── -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="card border-0 rounded-4 shadow-sm p-4 mb-4" style="background:#fff;">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="brand-icon" style="width:48px;height:48px;border-radius:14px;font-size:1.4rem;">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">MediGuide AI</h6>
+                        <span class="small text-muted">
+                            <span class="chat-status-dot"></span>Online
+                        </span>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-4 lh-base">
+                    Ask about symptoms, medicines, nutrition, mental health, or any medical topic.
+                    I provide preliminary guidance — always consult a doctor for serious concerns.
+                </p>
+                <hr class="my-3">
+                <h6 class="fw-bold mb-3 text-navy" style="font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;">Quick Questions</h6>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-light rounded-3 text-start quick-prompt" style="font-size:.8rem;">
+                        <i class="bi bi-clipboard2-pulse text-primary me-2"></i>What are symptoms of flu?
+                    </button>
+                    <button class="btn btn-sm btn-light rounded-3 text-start quick-prompt" style="font-size:.8rem;">
+                        <i class="bi bi-capsule text-info me-2"></i>Is paracetamol safe daily?
+                    </button>
+                    <button class="btn btn-sm btn-light rounded-3 text-start quick-prompt" style="font-size:.8rem;">
+                        <i class="bi bi-heart-pulse text-danger me-2"></i>Signs of high blood pressure?
+                    </button>
+                    <button class="btn btn-sm btn-light rounded-3 text-start quick-prompt" style="font-size:.8rem;">
+                        <i class="bi bi-droplet text-success me-2"></i>How much water per day?
+                    </button>
+                </div>
+            </div>
+
+            <div class="card border-0 rounded-4 shadow-sm p-3"
+                 style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15)!important;">
+                <div class="d-flex gap-2 align-items-start">
+                    <i class="bi bi-exclamation-triangle-fill text-danger mt-1"></i>
+                    <p class="small text-secondary mb-0" style="font-size:.78rem;">
+                        <strong class="text-danger">Disclaimer:</strong> MediGuide AI is for informational purposes only and does not replace professional medical advice.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Chat Panel ────────────────────────────────────────────── -->
+        <div class="col-lg-9">
+            <div class="chat-wrapper">
+
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="chat-header-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-0 fw-bold">MediGuide AI Chatbot</h5>
+                        <div class="d-flex align-items-center gap-1 mt-1">
+                            <span class="chat-status-dot" style="border-color:transparent;width:8px;height:8px;"></span>
+                            <small style="opacity:.8;">Online · AI Medical Assistant</small>
+                        </div>
+                    </div>
+                    <div class="ms-auto d-flex gap-2">
+                        <a href="{{ url_for('clear_chat') }}"
+                           class="btn btn-sm rounded-pill px-3 fw-semibold"
+                           style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);"
+                           title="Clear Chat">
+                            <i class="bi bi-trash3 me-1"></i>Clear
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div class="chat-messages" id="chatMessages">
+
+                    {% if chat_history %}
+                        {% for chat in chat_history %}
+
+                        <!-- User bubble -->
+                        <div class="d-flex flex-column align-items-end">
+                            <div class="chat-bubble chat-bubble-user">
+                                {{ chat.user }}
+                                <div class="chat-bubble-time text-white-50">You</div>
+                            </div>
+                        </div>
+
+                        <!-- Bot bubble -->
+                        <div class="d-flex flex-column align-items-start">
+                            <div class="d-flex align-items-end gap-2">
+                                <div style="width:28px;height:28px;border-radius:8px;background:var(--gradient-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div class="chat-bubble chat-bubble-bot">
+                                    {{ chat.bot }}
+                                    <div class="chat-bubble-time">MediGuide AI</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% endfor %}
+                    {% else %}
+                        <div class="chat-empty">
+                            <div class="chat-empty-icon">
+                                <i class="bi bi-chat-heart-fill"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Start the Conversation</h5>
+                            <p class="text-muted small mb-0 max-w-500">
+                                Ask any medical question or describe your symptoms.<br>
+                                MediGuide AI is here to help 24/7.
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Typing indicator (hidden by default) -->
+                    <div class="chat-typing" id="typingIndicator" style="display:none;">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+
+                </div>
+
+                <!-- Input area -->
+                <form method="POST" id="chatForm" class="chat-input-area">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="d-flex gap-2 align-items-end">
+                        <textarea
+                            class="form-control chat-input"
+                            name="message"
+                            id="chatInput"
+                            rows="1"
+                            placeholder="Ask a medical question or describe your symptoms…"
+                            required
+                            autocomplete="off"
+                            style="min-height:46px;max-height:120px;overflow-y:auto;"></textarea>
+                        <button type="submit" class="chat-send-btn" title="Send Message">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                        <small class="text-muted" style="font-size:.75rem;">
+                            <i class="bi bi-info-circle me-1"></i>Press Enter to send
+                        </small>
+                        <small class="text-muted" style="font-size:.75rem;">
+                            Powered by <strong class="text-primary">MediGuide AI</strong>
+                        </small>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Auto-resize textarea
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('input', () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        });
+        // Submit on Enter (not Shift+Enter)
+        chatInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    }
+
+    // Quick prompt buttons fill the input
+    document.querySelectorAll('.quick-prompt').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (chatInput) {
+                chatInput.value = btn.textContent.trim();
+                chatInput.focus();
+            }
+        });
+    });
+
+});
+</script>
+{% endblock %}

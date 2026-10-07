@@ -1,0 +1,60 @@
+# =============================================================================
+# MediGuide AI – Docker build context exclusions
+# =============================================================================
+# Files and directories listed here are NOT sent to the Docker daemon during
+# `docker build`. This keeps the build context small and prevents secrets or
+# local dev artefacts from leaking into the image.
+# =============================================================================
+
+# ── Python runtime artefacts ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ── Local virtual environments ────────────────────────────────────────────────
+venv/
+env/
+ENV/
+.venv/
+
+# ── Secrets & local config ────────────────────────────────────────────────────
+# IMPORTANT: Never bake .env into the image. docker-compose.yml loads it at
+# runtime via `env_file`, keeping secrets out of image layers.
+.env
+.env.local
+.env.*.local
+
+# ── SQLite database files ─────────────────────────────────────────────────────
+# The live database is provided by the named Docker volume at runtime.
+# Including the local .db file would bake stale data into the image.
+*.db
+*.sqlite3
+database/mediguide.db
+
+# ── Test suite (not needed in the runtime image) ──────────────────────────────
+tests/
+.pytest_cache/
+
+# ── Version control ───────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── IDE & editor files ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Documentation (optional – remove if you want docs in the image) ───────────
+# README.md
+
+# ── Docker files themselves (no need to copy them into the image) ─────────────
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# ── ML model build/training notebooks or scratch files ───────────────────────
+*.ipynb

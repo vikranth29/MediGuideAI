@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!--
+  MediGuide AI - User Profile Template (profile.html)
+  ---------------------------------------------------
+  Purpose: UI placeholder for managing personal profile, health preferences, and account settings with breadcrumbs.
+-->
+<section class="py-5">
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Profile</li>
+            </ol>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="max-w-700 mx-auto text-center mb-5">
+            <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 mb-2 fw-semibold">
+                <i class="bi bi-person-circle me-1"></i> Account & Profile
+            </span>
+            <h1 class="fw-bold display-6">User Profile</h1>
+            <p class="text-secondary">Manage your personal details, emergency contacts, and app preferences.</p>
+        </div>
+
+        <!-- Profile Form Card Placeholder -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 max-w-700 mx-auto bg-white">
+            <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
+                <div class="bg-primary-soft text-primary rounded-circle p-3 fs-1 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-1">Guest User</h4>
+                    <p class="text-secondary small mb-0">guest@mediguide.ai • Member since 2026</p>
+                </div>
+            </div>
+
+            <form>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Full Name</label>
+                        <input type="text" class="form-control rounded-3" value="Guest User" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Email Address</label>
+                        <input type="email" class="form-control rounded-3" value="guest@mediguide.ai" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Age</label>
+                        <input type="number" class="form-control rounded-3" placeholder="e.g. 28" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Blood Group</label>
+                        <select class="form-select rounded-3" disabled>
+                            <option>O+</option>
+                            <option>A+</option>
+                            <option>B+</option>
+                            <option>AB+</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end mt-4">
+                        <button type="button" class="btn btn-gradient-primary rounded-pill px-4" disabled>Save Profile</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

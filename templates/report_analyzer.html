@@ -1,0 +1,710 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+/* ── Upload drop-zone ──────────────────────────────────────────────────────── */
+.drop-zone {
+    border: 2px dashed var(--slate-200);
+    border-radius: var(--radius-lg);
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-out);
+    background: #fafbff;
+    position: relative;
+}
+.drop-zone:hover,
+.drop-zone.drag-over {
+    border-color: var(--blue-500);
+    background: rgba(37,99,235,.04);
+}
+.drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+.drop-zone-icon {
+    width: 64px; height: 64px;
+    border-radius: 18px;
+    background: rgba(37,99,235,.1);
+    color: var(--blue-500);
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    transition: transform 0.3s var(--ease-spring);
+}
+.drop-zone:hover .drop-zone-icon { transform: scale(1.1) rotate(-5deg); }
+
+/* ── Section tabs ─────────────────────────────────────────────────────────── */
+.input-tab { cursor: pointer; }
+.input-tab.active-tab { border-color: var(--blue-500) !important; background: rgba(37,99,235,.06) !important; color: var(--blue-500) !important; }
+
+/* ── Result card blocks ───────────────────────────────────────────────────── */
+.result-block {
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.3s ease;
+}
+.result-block:hover { box-shadow: var(--shadow-md); }
+
+.result-block-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--slate-200);
+}
+.result-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.finding-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: rgba(37,99,235,.04);
+    border: 1px solid rgba(37,99,235,.08);
+    font-size: .9rem;
+    line-height: 1.5;
+    animation: bubbleIn .35s var(--ease-out);
+}
+.finding-item:last-child { margin-bottom: 0; }
+.finding-bullet { width: 22px; height: 22px; border-radius: 50%; background: rgba(37,99,235,.12); color: var(--blue-500); font-size: .75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.risk-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: rgba(239,68,68,.05);
+    border: 1px solid rgba(239,68,68,.15);
+    font-size: .9rem;
+    line-height: 1.5;
+    animation: bubbleIn .35s var(--ease-out);
+}
+.risk-item:last-child { margin-bottom: 0; }
+
+.rec-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: rgba(22,163,74,.05);
+    border: 1px solid rgba(22,163,74,.12);
+    font-size: .9rem;
+    line-height: 1.5;
+    animation: bubbleIn .35s var(--ease-out);
+}
+.rec-item:last-child { margin-bottom: 0; }
+
+/* ── Score ring (placeholder visual) ─────────────────────────────────────── */
+.analysis-score-ring {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border: 6px solid rgba(37,99,235,.12);
+    border-top-color: var(--blue-500);
+    animation: spinRing 2s linear infinite;
+    margin: 0 auto 12px;
+}
+@keyframes spinRing { to { transform: rotate(360deg); } }
+
+/* Progress animation for result reveal */
+.result-section { animation: fadeUp .5s var(--ease-out) forwards; opacity: 0; }
+.result-section:nth-child(1) { animation-delay: .1s; }
+.result-section:nth-child(2) { animation-delay: .25s; }
+.result-section:nth-child(3) { animation-delay: .4s; }
+.result-section:nth-child(4) { animation-delay: .55s; }
+.result-section:nth-child(5) { animation-delay: .7s; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── Health Metrics Chart ─────────────────────────────────────────────────── */
+.metrics-chart-wrap {
+    position: relative;
+    width: 100%;
+    min-height: 120px;
+}
+.metrics-legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-5 bg-light-gradient min-vh-100">
+<div class="container py-3">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4 reveal">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Report Analyzer</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="text-center mb-5 reveal">
+        <span class="section-badge section-badge-teal">
+            <i class="bi bi-file-earmark-medical-fill"></i> AI-Powered
+        </span>
+        <h1 class="section-title mt-2">
+            Medical Report <span class="text-primary-gradient">Analyzer</span>
+        </h1>
+        <p class="section-subtitle">
+            Upload or paste any medical report — blood test, X-ray summary, prescription, lab results —
+            and get an instant AI-powered breakdown in plain language.
+        </p>
+    </div>
+
+    <div class="row g-5 align-items-start">
+
+        <!-- ── Input Panel ────────────────────────────────────────────── -->
+        <div class="col-lg-5 reveal">
+
+            <div class="card border-0 rounded-4 shadow p-4 bg-white">
+
+                <h5 class="fw-bold mb-4 text-navy d-flex align-items-center gap-2">
+                    <i class="bi bi-upload text-primary"></i> Upload Your Report
+                </h5>
+
+                <!-- Tab switcher -->
+                <div class="d-flex gap-2 mb-4">
+                    <button type="button"
+                            class="btn btn-sm rounded-pill px-3 border input-tab active-tab"
+                            id="tabPaste"
+                            onclick="switchTab('paste')">
+                        <i class="bi bi-clipboard-fill me-1"></i>Paste Text
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm rounded-pill px-3 border input-tab"
+                            id="tabFile"
+                            onclick="switchTab('file')">
+                        <i class="bi bi-file-earmark-arrow-up me-1"></i>Upload File
+                    </button>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="analyzeForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                    <!-- Paste panel -->
+                    <div id="panelPaste">
+                        <label class="form-label-styled mb-2">Paste Report Text</label>
+                        <textarea
+                            class="form-control form-control-styled"
+                            name="report_text"
+                            id="reportTextArea"
+                            rows="10"
+                            placeholder="Paste your blood test results, lab report, doctor's notes, or any medical document text here…">{{ report_text if report_text else '' }}</textarea>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted" id="charCount">0 characters</small>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-muted" onclick="clearText()">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- File upload panel (hidden by default) -->
+                    <div id="panelFile" style="display:none;">
+                        <label class="form-label-styled mb-2">Upload File</label>
+                        <div class="drop-zone" id="dropZone">
+                            <input type="file"
+                                   name="report_file"
+                                   id="reportFile"
+                                   accept=".pdf,.txt,.csv"
+                                   onchange="onFileSelect(this)">
+                            <div class="drop-zone-icon">
+                                <i class="bi bi-file-earmark-medical-fill"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1" id="dropLabel">Drag & drop or click to browse</h6>
+                            <p class="text-muted small mb-0">Supports PDF, TXT — max 5 MB</p>
+                        </div>
+                    </div>
+
+                    <!-- Error display -->
+                    {% if error %}
+                    <div class="alert rounded-3 mt-3 d-flex align-items-center gap-2"
+                         style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        <span class="text-danger small fw-semibold">{{ error }}</span>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit"
+                            class="btn btn-gradient-primary rounded-pill w-100 mt-4 py-3 fw-bold fs-6"
+                            id="analyzeBtn">
+                        <i class="bi bi-cpu-fill me-2"></i>Analyze Report
+                    </button>
+
+                </form>
+
+                <!-- Sample snippets -->
+                <div class="mt-4">
+                    <p class="text-muted small fw-semibold mb-2">
+                        <i class="bi bi-lightning-charge me-1"></i>Try a sample:
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-sm btn-light rounded-pill border small sample-btn"
+                                data-sample="Blood Test Report&#10;Patient: John Doe | Age: 35 | Date: 2026-08-01&#10;&#10;Complete Blood Count (CBC):&#10;- Hemoglobin: 11.2 g/dL (Normal: 13.5–17.5) ⬇ LOW&#10;- WBC: 11,500/µL (Normal: 4,500–11,000) ⬆ HIGH&#10;- Platelets: 150,000/µL (Normal: 150,000–400,000) Normal&#10;- RBC: 3.9 million/µL (Normal: 4.7–6.1) ⬇ LOW&#10;&#10;Blood Chemistry:&#10;- Glucose (Fasting): 126 mg/dL (Normal: 70–100) ⬆ HIGH&#10;- HbA1c: 7.1% (Normal: &lt;5.7%) ⬆ HIGH — Indicative of Diabetes&#10;- Creatinine: 1.1 mg/dL (Normal: 0.7–1.2) Normal&#10;- Total Cholesterol: 215 mg/dL (Normal: &lt;200) ⬆ HIGH&#10;- LDL: 145 mg/dL (Normal: &lt;130) ⬆ HIGH&#10;- HDL: 42 mg/dL (Normal: &gt;40) Normal&#10;&#10;Doctor's Note: Elevated glucose and HbA1c suggest pre-diabetic or early diabetic condition. Anaemia likely iron-deficiency. Advise dietary changes, iron supplementation, and follow-up in 4 weeks.">
+                            Blood Test
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill border small sample-btn"
+                                data-sample="Chest X-Ray Report&#10;Patient: Jane Smith | Age: 42 | Date: 2026-07-28&#10;&#10;Findings:&#10;- Lungs appear clear bilaterally with no evidence of consolidation or pleural effusion.&#10;- Heart size is at the upper limit of normal (CTR ~ 0.52).&#10;- Mild haziness noted in the right lower lobe.&#10;- No pneumothorax identified.&#10;- Bony thorax intact. No rib fractures.&#10;&#10;Impression:&#10;Mild right lower lobe haziness — possibly early bronchopneumonia. Clinical correlation recommended. Cardiac silhouette borderline enlarged. Echocardiogram suggested if symptoms persist.">
+                            Chest X-Ray
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill border small sample-btn"
+                                data-sample="Prescription Note&#10;Doctor: Dr. Ramesh Patel, MD | Date: 2026-08-15&#10;Patient: Arun Kumar | Age: 28&#10;&#10;Diagnosis: Acute Pharyngitis (Bacterial)&#10;&#10;Medications:&#10;1. Amoxicillin 500mg — 1 tablet 3 times daily for 7 days&#10;2. Paracetamol 650mg — as needed for fever (max 4/day)&#10;3. Betadine Gargle — twice daily&#10;&#10;Advice: Rest, plenty of fluids, avoid cold foods. Return if symptoms worsen after 3 days.&#10;Follow-up: 1 week">
+                            Prescription
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Features strip -->
+            <div class="card border-0 rounded-4 shadow-sm p-4 bg-white mt-4">
+                <h6 class="fw-bold mb-3 text-navy">What can it analyze?</h6>
+                <div class="d-flex flex-column gap-2">
+                    {% set features = [
+                        ('bi-droplet-fill','Blood Test Results','CBC, glucose, cholesterol, HbA1c…','text-danger'),
+                        ('bi-lungs-fill','Radiology Reports','X-Ray, MRI, CT scan summaries','text-info'),
+                        ('bi-file-medical','Prescriptions','Medicines, dosages, doctor notes','text-success'),
+                        ('bi-clipboard2-data','Lab Reports','Urine, liver, kidney function tests','text-primary'),
+                        ('bi-heart-pulse-fill','ECG Reports','Heart rate, rhythm findings','text-warning'),
+                    ] %}
+                    {% for icon, title, desc, color in features %}
+                    <div class="d-flex align-items-center gap-3 p-2 rounded-3"
+                         style="transition:.2s ease;" onmouseover="this.style.background='rgba(37,99,235,.04)'" onmouseout="this.style.background=''">
+                        <i class="bi {{ icon }} {{ color }} fs-5" style="width:24px;text-align:center;"></i>
+                        <div>
+                            <div class="fw-semibold" style="font-size:.88rem;">{{ title }}</div>
+                            <div class="text-muted" style="font-size:.76rem;">{{ desc }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── Results Panel ──────────────────────────────────────────── -->
+        <div class="col-lg-7">
+
+            {% if analysis %}
+            <!-- ── Analysis Results ────────────────────────────────────── -->
+
+            <!-- Header success bar -->
+            <div class="result-section result-block"
+                 style="background:var(--gradient-primary);border:none;color:#fff;">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-0">Analysis Complete</h5>
+                        <small class="opacity-75">AI-powered medical report breakdown</small>
+                    </div>
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold">
+                        <i class="bi bi-cpu me-1"></i>Gemini AI
+                    </span>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="result-section result-block">
+                <div class="result-block-header">
+                    <div class="result-icon" style="background:rgba(37,99,235,.1);color:var(--blue-500);">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Summary</h6>
+                        <small class="text-muted">Plain-language overview</small>
+                    </div>
+                </div>
+                <p class="text-secondary lh-lg mb-0" style="font-size:.95rem;">
+                    {{ analysis.summary }}
+                </p>
+            </div>
+
+            <!-- Key Findings -->
+            {% if analysis.key_findings %}
+            <div class="result-section result-block">
+                <div class="result-block-header">
+                    <div class="result-icon" style="background:rgba(37,99,235,.1);color:var(--blue-500);">
+                        <i class="bi bi-list-check"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Key Findings</h6>
+                        <small class="text-muted">{{ analysis.key_findings | length }} observation{{ 's' if analysis.key_findings | length != 1 else '' }} identified</small>
+                    </div>
+                </div>
+                {% for finding in analysis.key_findings %}
+                <div class="finding-item">
+                    <div class="finding-bullet">{{ loop.index }}</div>
+                    <span>{{ finding }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- ── Health Metrics Chart ─────────────────────────────────── -->
+            {% if health_metrics %}
+            <div class="result-section result-block">
+                <div class="result-block-header">
+                    <div class="result-icon" style="background:rgba(124,58,237,.1);color:#7c3aed;">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Health Metrics</h6>
+                        <small class="text-muted">Numeric values extracted from your report</small>
+                    </div>
+                    <div class="ms-auto d-flex align-items-center gap-3" style="font-size:.78rem;">
+                        <span class="d-flex align-items-center gap-1 text-success">
+                            <span class="metrics-legend-dot" style="background:#16a34a;"></span> Normal
+                        </span>
+                        <span class="d-flex align-items-center gap-1 text-danger">
+                            <span class="metrics-legend-dot" style="background:#ef4444;"></span> Flagged
+                        </span>
+                    </div>
+                </div>
+                <!-- Chart.js canvas -->
+                <div class="metrics-chart-wrap">
+                    <canvas id="healthMetricsChart" aria-label="Health metrics bar chart" role="img"></canvas>
+                </div>
+                <!-- Inject data for JS -->
+                <script id="health-metrics-data" type="application/json">
+                    {{ health_metrics | tojson }}
+                </script>
+            </div>
+            {% endif %}
+
+            <!-- Risk Flags -->
+            {% if analysis.risk_flags %}
+            <div class="result-section result-block" style="border-color:rgba(239,68,68,.15);">
+                <div class="result-block-header" style="border-color:rgba(239,68,68,.1);">
+                    <div class="result-icon" style="background:rgba(239,68,68,.1);color:#ef4444;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-danger">Risk Flags</h6>
+                        <small class="text-muted">Values outside normal range — requires attention</small>
+                    </div>
+                    <span class="badge rounded-pill px-3 py-2 ms-auto"
+                          style="background:rgba(239,68,68,.1);color:#ef4444;">
+                        {{ analysis.risk_flags | length }} Flag{{ 's' if analysis.risk_flags | length != 1 else '' }}
+                    </span>
+                </div>
+                {% for flag in analysis.risk_flags %}
+                <div class="risk-item">
+                    <i class="bi bi-exclamation-circle-fill text-danger mt-1 flex-shrink-0"></i>
+                    <span>{{ flag }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="result-section result-block" style="border-color:rgba(22,163,74,.15);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="result-icon" style="background:rgba(22,163,74,.1);color:#16a34a;">
+                        <i class="bi bi-shield-check-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-success">No Risk Flags Detected</h6>
+                        <small class="text-muted">All observed values appear within normal ranges.</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recommendations -->
+            {% if analysis.recommendations %}
+            <div class="result-section result-block" style="border-color:rgba(22,163,74,.15);">
+                <div class="result-block-header" style="border-color:rgba(22,163,74,.1);">
+                    <div class="result-icon" style="background:rgba(22,163,74,.1);color:#16a34a;">
+                        <i class="bi bi-lightbulb-fill"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Recommendations</h6>
+                        <small class="text-muted">Actionable next steps</small>
+                    </div>
+                </div>
+                {% for rec in analysis.recommendations %}
+                <div class="rec-item">
+                    <i class="bi bi-check-circle-fill text-success mt-1 flex-shrink-0"></i>
+                    <span>{{ rec }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Disclaimer -->
+            <div class="result-section">
+                <div class="p-4 rounded-3 d-flex gap-3 align-items-start"
+                     style="background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.2);">
+                    <i class="bi bi-exclamation-triangle-fill text-warning mt-1 fs-5 flex-shrink-0"></i>
+                    <div>
+                        <strong class="text-warning-emphasis d-block mb-1" style="font-size:.88rem;">Medical Disclaimer</strong>
+                        <p class="text-secondary small mb-0 lh-base">
+                            {{ analysis.disclaimer }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="result-section d-flex flex-wrap gap-3 mt-3">
+                <a href="{{ url_for('report_analyzer') }}"
+                   class="btn btn-outline-primary rounded-pill px-4 fw-semibold">
+                    <i class="bi bi-arrow-repeat me-2"></i>Analyze Another
+                </a>
+                <a href="{{ url_for('chatbot') }}"
+                   class="btn btn-gradient-primary rounded-pill px-4 fw-semibold">
+                    <i class="bi bi-chat-dots-fill me-2"></i>Ask AI Follow-up
+                </a>
+            </div>
+
+            {% else %}
+            <!-- ── Empty / Idle State ───────────────────────────────────── -->
+            <div class="card border-0 rounded-4 shadow-sm bg-white h-100 d-flex align-items-center justify-content-center p-5 text-center reveal reveal-delay-2">
+                <div style="width:90px;height:90px;border-radius:50%;background:rgba(37,99,235,.07);display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--blue-500);margin:0 auto 20px;animation:floatBounce 3s ease-in-out infinite;">
+                    <i class="bi bi-file-earmark-medical-fill"></i>
+                </div>
+                <h4 class="fw-bold mb-2 text-navy">Ready to Analyze</h4>
+                <p class="text-muted mb-4">
+                    Paste your report text or upload a PDF on the left,<br>
+                    then click <strong>Analyze Report</strong> to get instant AI insights.
+                </p>
+                <div class="row g-3 text-start w-100" style="max-width:380px;margin:0 auto;">
+                    {% for icon, label, color in [
+                        ('bi-1-circle-fill','Paste or upload your report',  'text-primary'),
+                        ('bi-2-circle-fill','Click "Analyze Report"',       'text-success'),
+                        ('bi-3-circle-fill','Review AI findings & tips',    'text-warning')
+                    ] %}
+                    <div class="col-12 d-flex align-items-center gap-3">
+                        <i class="bi {{ icon }} {{ color }} fs-4 flex-shrink-0"></i>
+                        <span class="text-secondary small">{{ label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js from cdnjs -->
+{% if health_metrics %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.7/chart.umd.min.js"
+        integrity="sha512-yKkCKiGSGZ1gD64MHQwk2NQFZ7xk3ElfKPQoGZxSQ1bMhfwkV9GFMW5ZRN3q2TpHODfuL04ZLr+RJLUhQCrA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function () {
+    'use strict';
+
+    const raw = document.getElementById('health-metrics-data');
+    if (!raw) return;
+
+    let metrics;
+    try { metrics = JSON.parse(raw.textContent); } catch (e) { return; }
+    if (!metrics || metrics.length === 0) return;
+
+    const canvas = document.getElementById('healthMetricsChart');
+    if (!canvas) return;
+
+    /* Dynamic height: 44px per bar + padding */
+    const barH = 38;
+    const totalH = Math.max(120, metrics.length * (barH + 10) + 40);
+    canvas.style.height = totalH + 'px';
+
+    const labels = metrics.map(m => m.unit ? `${m.name} (${m.unit})` : m.name);
+    const values = metrics.map(m => m.value);
+    const colors = metrics.map(m =>
+        m.flagged
+            ? 'rgba(239,68,68,.75)'
+            : 'rgba(22,163,74,.72)'
+    );
+    const borders = metrics.map(m =>
+        m.flagged ? '#ef4444' : '#16a34a'
+    );
+
+    new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Measured Value',
+                data: values,
+                backgroundColor: colors,
+                borderColor: borders,
+                borderWidth: 1.5,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            indexAxis: 'y',       // horizontal bars
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 700,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: ctx => ctx[0].label,
+                        label: ctx => {
+                            const m = metrics[ctx.dataIndex];
+                            const flag = m.flagged ? '  ⚠ Flagged' : '  ✓ Normal';
+                            return ` Value: ${m.value}${m.unit ? ' ' + m.unit : ''}${flag}`;
+                        }
+                    },
+                    backgroundColor: 'rgba(15,23,42,.92)',
+                    titleFont: { weight: '600', size: 13 },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,.05)' },
+                    ticks: { color: '#6c757d', font: { size: 11 } }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: {
+                        color: '#374151',
+                        font: { size: 11.5, weight: '500' },
+                        padding: 6
+                    }
+                }
+            },
+            layout: { padding: { right: 12 } }
+        }
+    });
+}());
+</script>
+{% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ── Tab switcher ──────────────────────────────────────────────────
+    window.switchTab = function(tab) {
+        const tabPaste = document.getElementById('tabPaste');
+        const tabFile  = document.getElementById('tabFile');
+        const panelPaste = document.getElementById('panelPaste');
+        const panelFile  = document.getElementById('panelFile');
+        if (tab === 'paste') {
+            tabPaste.classList.add('active-tab');
+            tabFile.classList.remove('active-tab');
+            panelPaste.style.display = '';
+            panelFile.style.display  = 'none';
+            // clear file input so form sends text
+            document.getElementById('reportFile').value = '';
+        } else {
+            tabFile.classList.add('active-tab');
+            tabPaste.classList.remove('active-tab');
+            panelFile.style.display  = '';
+            panelPaste.style.display = 'none';
+        }
+    };
+
+    // ── Character counter ─────────────────────────────────────────────
+    const ta = document.getElementById('reportTextArea');
+    const cc = document.getElementById('charCount');
+    function updateCount() {
+        if (ta && cc) cc.textContent = ta.value.length.toLocaleString() + ' characters';
+    }
+    if (ta) { ta.addEventListener('input', updateCount); updateCount(); }
+
+    window.clearText = function() {
+        if (ta) { ta.value = ''; updateCount(); ta.focus(); }
+    };
+
+    // ── Sample buttons ────────────────────────────────────────────────
+    document.querySelectorAll('.sample-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchTab('paste');
+            if (ta) {
+                ta.value = btn.dataset.sample;
+                updateCount();
+                ta.scrollTop = 0;
+            }
+        });
+    });
+
+    // ── Drag & drop ───────────────────────────────────────────────────
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+        ['dragenter','dragover'].forEach(e => {
+            dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); });
+        });
+        ['dragleave','drop'].forEach(e => {
+            dropZone.addEventListener(e, () => dropZone.classList.remove('drag-over'));
+        });
+        dropZone.addEventListener('drop', ev => {
+            ev.preventDefault();
+            const file = ev.dataTransfer.files[0];
+            if (file) {
+                document.getElementById('reportFile').files = ev.dataTransfer.files;
+                onFileSelect({ files: [file] });
+            }
+        });
+    }
+
+    window.onFileSelect = function(input) {
+        const file = input.files ? input.files[0] : null;
+        const label = document.getElementById('dropLabel');
+        if (file && label) {
+            label.textContent = '✓ ' + file.name;
+            label.style.color = 'var(--blue-500)';
+        }
+    };
+
+    // ── Loading state on submit ───────────────────────────────────────
+    const form = document.getElementById('analyzeForm');
+    const btn  = document.getElementById('analyzeBtn');
+    if (form && btn) {
+        form.addEventListener('submit', () => {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing…';
+        });
+    }
+
+});
+</script>
+{% endblock %}

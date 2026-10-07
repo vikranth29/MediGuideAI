@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('index') }}" class="text-decoration-none">Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Symptom Checker
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3">
+                <i class="bi bi-cpu-fill me-1"></i>
+                AI Diagnostic Module
+            </span>
+
+            <h1 class="fw-bold">
+                AI Symptom Checker
+            </h1>
+
+            <p class="text-muted">
+                Enter your symptoms below and let MediGuide AI perform an initial health assessment.
+            </p>
+        </div>
+
+        <!-- Form -->
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-5">
+
+                <form method="POST" action="{{ url_for('symptom_checker') }}" id="symptomForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                    <!-- ── Symptom Autocomplete Input ─────────────────────── -->
+                    <div class="mb-4" style="position:relative;">
+                        <label class="form-label fw-bold" for="symptom-input">
+                            Symptoms
+                            <span class="text-muted fw-normal ms-1" style="font-size:.82rem;">
+                                (type to search, press <kbd>Enter</kbd> or click to add)
+                            </span>
+                        </label>
+
+                        <!-- Tag container + text input wrapper -->
+                        <div id="symptom-box"
+                             role="combobox"
+                             aria-haspopup="listbox"
+                             aria-expanded="false"
+                             aria-owns="symptom-dropdown"
+                             style="
+                                display:flex; flex-wrap:wrap; align-items:center; gap:6px;
+                                min-height:52px; padding:8px 12px;
+                                border:1px solid #dee2e6; border-radius:.5rem;
+                                background:#fff; cursor:text;
+                                transition:border-color .2s, box-shadow .2s;
+                             ">
+                            <!-- chips rendered here by JS -->
+                            <input
+                                id="symptom-input"
+                                type="text"
+                                autocomplete="off"
+                                placeholder="e.g. itching, headache…"
+                                aria-label="Type a symptom"
+                                aria-autocomplete="list"
+                                aria-controls="symptom-dropdown"
+                                style="
+                                    flex:1; min-width:140px; border:none; outline:none;
+                                    font-size:.95rem; background:transparent; padding:2px 0;
+                                ">
+                        </div>
+
+                        <!-- Autocomplete dropdown (absolutely positioned) -->
+                        <ul id="symptom-dropdown"
+                            role="listbox"
+                            aria-label="Symptom suggestions"
+                            style="
+                                display:none; position:absolute; z-index:1050;
+                                background:#fff; border:1px solid #d0d7de;
+                                border-radius:.5rem; margin-top:4px;
+                                padding:4px 0; max-height:220px; overflow-y:auto;
+                                box-shadow:0 8px 24px rgba(0,0,0,.12);
+                                list-style:none; width:100%;
+                            ">
+                        </ul>
+
+                        <!-- Hidden textarea that actually submits the value -->
+                        <textarea name="symptoms"
+                                  id="symptoms-hidden"
+                                  style="display:none;"
+                                  aria-hidden="true"></textarea>
+
+                        <div class="mt-1 d-flex justify-content-between align-items-center">
+                            <small class="text-muted" id="symptom-count">0 symptoms selected</small>
+                            <button type="button"
+                                    id="clear-symptoms-btn"
+                                    class="btn btn-link btn-sm p-0 text-muted"
+                                    style="display:none;">
+                                Clear all
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Duration & Severity -->
+                    <div class="row">
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Duration</label>
+                            <select class="form-select" name="duration">
+                                <option value="1">Less than 24 Hours</option>
+                                <option value="3">1 - 3 Days</option>
+                                <option value="7">More than 1 Week</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Severity</label>
+                            <select class="form-select" name="severity">
+                                <option value="Mild">Mild</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Severe">Severe</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <!-- Age & Gender -->
+                    <div class="row">
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Age</label>
+                            <input type="number" class="form-control" name="age" min="1" max="120" required>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Gender</label>
+                            <select class="form-select" name="gender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill" id="analyze-btn">
+                        <i class="bi bi-search-heart me-2"></i>
+                        Analyze Symptoms
+                    </button>
+
+                </form>
+
+                <!-- Prediction -->
+                {% if prediction %}
+                <div class="alert alert-success mt-5 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h3 class="mb-2">
+                            <i class="bi bi-clipboard2-pulse-fill"></i>
+                            Predicted Disease
+                        </h3>
+
+                        <h4 class="text-success mb-0">
+                            {{ prediction }}
+                        </h4>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('hospital_bp.nearby_hospitals') }}" class="btn btn-outline-success rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-geo-alt-fill me-1"></i> Find Nearby Hospitals
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Disease Description -->
+                {% if description %}
+                <div class="card border-primary mt-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-info-circle-fill"></i>
+                            Disease Description
+                        </h4>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="mb-0">
+                            {{ description }}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Recommended Precautions -->
+                {% if precautions %}
+                <div class="card border-success mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-shield-check"></i>
+                            Recommended Precautions
+                        </h4>
+                    </div>
+
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+
+                            {% for precaution in precautions %}
+                            {% if precaution %}
+                            <li class="list-group-item">
+                                ✅ {{ precaution }}
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Suggested Medicines -->
+                {% if medicine %}
+                <div class="card border-warning mt-4">
+                    <div class="card-header bg-warning">
+                        <h4 class="mb-0">
+                            <i class="bi bi-capsule-pill"></i>
+                            Suggested Medicines
+                        </h4>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="fs-5">
+                            {{ medicine }}
+                        </p>
+
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <strong>⚠ Medical Disclaimer</strong><br>
+                            These medicines are general recommendations from the dataset used in this project.
+                            They are <strong>not a medical prescription</strong>. Please consult a qualified
+                            doctor or healthcare professional before taking any medication.
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if ai_advice %}
+                <div class="card border-info mt-4">
+
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            🤖 AI Health Advisor
+                        </h4>
+                    </div>
+
+                    <div class="card-body">
+                        <pre style="white-space: pre-wrap; font-family: inherit;">
+{{ ai_advice }}
+        </pre>
+                    </div>
+
+                </div>
+                {% endif %}
+
+                <!-- Find Nearby Hospitals Card -->
+                {% if prediction %}
+                <div class="card border-primary mt-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-hospital"></i>
+                            Find Nearby Hospitals
+                        </h4>
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-semibold">Medical Centers</span>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8 mb-3 mb-md-0">
+                                <h5 class="fw-bold mb-1">Need In-Person Medical Attention?</h5>
+                                <p class="text-secondary mb-0">
+                                    Quickly locate emergency rooms, clinics, and multi-specialty hospitals near you with interactive maps and directions.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <a href="{{ url_for('hospital_bp.nearby_hospitals') }}" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow-sm">
+                                    <i class="bi bi-geo-alt-fill me-1"></i> Find Nearby Hospitals
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Autocomplete ─────────────────────────────────────────────────────────── */
+#symptom-box:focus-within {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 .25rem rgba(13,110,253,.15) !important;
+}
+
+/* Chip / tag */
+.symptom-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 12px;
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 500;
+    background: rgba(13,110,253,.1);
+    color: #0a58ca;
+    border: 1px solid rgba(13,110,253,.25);
+    animation: chipIn .18s ease;
+    white-space: nowrap;
+    max-width: 220px;
+    user-select: none;
+}
+.symptom-chip span { overflow: hidden; text-overflow: ellipsis; }
+.symptom-chip-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 1rem;
+    line-height: 1;
+    color: #0a58ca;
+    opacity: .55;
+    transition: opacity .15s;
+    flex-shrink: 0;
+}
+.symptom-chip-remove:hover { opacity: 1; }
+
+@keyframes chipIn {
+    from { transform: scale(.75); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+/* Dropdown items */
+#symptom-dropdown li {
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: .9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background .1s;
+    list-style: none;
+}
+#symptom-dropdown li:hover,
+#symptom-dropdown li.ac-active {
+    background: rgba(13,110,253,.07);
+}
+.ac-match  { font-weight: 700; color: #0d6efd; }
+.ac-icon   { font-size: .75rem; color: #6c757d; flex-shrink: 0; }
+.ac-empty  {
+    padding: 10px 14px;
+    font-size: .85rem;
+    color: #6c757d;
+    cursor: default;
+    list-style: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Symptom list injected by Flask (134 known features) -->
+<script id="symptom-data" type="application/json">{{ symptoms_list | tojson }}</script>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ── Data ─────────────────────────────────────────────────────────────── */
+    const ALL_SYMPTOMS = JSON.parse(document.getElementById('symptom-data').textContent);
+
+    /* ── DOM refs ─────────────────────────────────────────────────────────── */
+    const box        = document.getElementById('symptom-box');
+    const input      = document.getElementById('symptom-input');
+    const dropdown   = document.getElementById('symptom-dropdown');
+    const hidden     = document.getElementById('symptoms-hidden');
+    const countLabel = document.getElementById('symptom-count');
+    const clearBtn   = document.getElementById('clear-symptoms-btn');
+    const form       = document.getElementById('symptomForm');
+    const analyzeBtn = document.getElementById('analyze-btn');
+
+    /* ── State ────────────────────────────────────────────────────────────── */
+    let selected  = [];   // confirmed symptom strings (snake_case)
+    let activeIdx = -1;   // highlighted dropdown row
+    let ddItems   = [];   // rendered <li> nodes in current dropdown
+
+    /* ── Utilities ────────────────────────────────────────────────────────── */
+    const norm    = s => s.trim().toLowerCase().replace(/\s+/g, '_');
+    const display = s => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    function syncHidden()  { hidden.value = selected.join(', '); }
+    function updateCount() {
+        const n = selected.length;
+        countLabel.textContent = n === 0 ? '0 symptoms selected'
+                                         : `${n} symptom${n === 1 ? '' : 's'} selected`;
+        clearBtn.style.display = n > 0 ? '' : 'none';
+    }
+
+    /* ── Chip management ──────────────────────────────────────────────────── */
+    function addChip(sym) {
+        const key = norm(sym);
+        if (!key || selected.includes(key) || !ALL_SYMPTOMS.includes(key)) return;
+
+        selected.push(key);
+        syncHidden();
+        updateCount();
+
+        const chip = document.createElement('div');
+        chip.className  = 'symptom-chip';
+        chip.dataset.sym = key;
+        chip.innerHTML  = `<span title="${display(key)}">${display(key)}</span>
+            <button type="button" class="symptom-chip-remove" aria-label="Remove ${display(key)}" tabindex="-1">×</button>`;
+        chip.querySelector('.symptom-chip-remove')
+            .addEventListener('click', () => removeChip(key));
+        box.insertBefore(chip, input);
+    }
+
+    function removeChip(sym) {
+        selected = selected.filter(s => s !== sym);
+        syncHidden();
+        updateCount();
+        box.querySelector(`.symptom-chip[data-sym="${sym}"]`)?.remove();
+    }
+
+    function clearAll() {
+        selected = [];
+        syncHidden();
+        updateCount();
+        box.querySelectorAll('.symptom-chip').forEach(c => c.remove());
+        input.value = '';
+        closeDropdown();
+    }
+
+    /* ── Dropdown ─────────────────────────────────────────────────────────── */
+    function buildDropdown(query) {
+        const q = norm(query);
+        if (!q) { closeDropdown(); return; }
+
+        const prefix = ALL_SYMPTOMS.filter(s => !selected.includes(s) && s.startsWith(q));
+        const sub    = ALL_SYMPTOMS.filter(s => !selected.includes(s) && !s.startsWith(q) && s.includes(q));
+        const hits   = [...prefix, ...sub].slice(0, 10);
+
+        dropdown.innerHTML = '';
+        activeIdx = -1;
+        ddItems   = [];
+
+        if (hits.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'ac-empty';
+            empty.textContent = 'No matching symptoms found';
+            dropdown.appendChild(empty);
+        } else {
+            ddItems = hits.map((sym, i) => {
+                const li = document.createElement('li');
+                li.setAttribute('role', 'option');
+                li.setAttribute('id', `ac-opt-${i}`);
+                li.dataset.symptom = sym;
+                li.setAttribute('aria-selected', 'false');
+
+                // Bold-highlight the matched substring
+                const label   = display(sym);
+                const qLabel  = q.replace(/_/g, ' ');
+                const escaped = qLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const hi      = label.replace(new RegExp(`(${escaped})`, 'gi'),
+                                              '<span class="ac-match">$1</span>');
+                li.innerHTML  = `<i class="bi bi-activity ac-icon"></i><span>${hi}</span>`;
+
+                li.addEventListener('mousedown', e => {
+                    e.preventDefault();
+                    addChip(sym);
+                    input.value = '';
+                    closeDropdown();
+                    input.focus();
+                });
+                dropdown.appendChild(li);
+                return li;
+            });
+        }
+
+        dropdown.style.display = 'block';
+        box.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDropdown() {
+        dropdown.style.display = 'none';
+        box.setAttribute('aria-expanded', 'false');
+        activeIdx = -1;
+        ddItems.forEach(li => li.classList.remove('ac-active'));
+    }
+
+    function setActive(idx) {
+        ddItems.forEach((li, i) => {
+            const on = i === idx;
+            li.classList.toggle('ac-active', on);
+            li.setAttribute('aria-selected', on ? 'true' : 'false');
+            if (on) { li.scrollIntoView({ block: 'nearest' }); }
+        });
+        input.setAttribute('aria-activedescendant', ddItems[idx]?.id ?? '');
+    }
+
+    /* ── Event listeners ──────────────────────────────────────────────────── */
+    box.addEventListener('click', () => input.focus());
+
+    input.addEventListener('input', () => buildDropdown(input.value));
+    input.addEventListener('focus', () => { if (input.value) buildDropdown(input.value); });
+
+    input.addEventListener('keydown', e => {
+        const open = dropdown.style.display !== 'none';
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (!open) { buildDropdown(input.value); return; }
+            activeIdx = Math.min(activeIdx + 1, ddItems.length - 1);
+            setActive(activeIdx);
+
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIdx = Math.max(activeIdx - 1, 0);
+            setActive(activeIdx);
+
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (e.key === 'Tab' && !open) return;  // normal Tab when dropdown closed
+            e.preventDefault();
+            const pickIdx = activeIdx >= 0 ? activeIdx : 0;
+            if (ddItems[pickIdx]) {
+                addChip(ddItems[pickIdx].dataset.symptom);
+            } else if (e.key === 'Enter') {
+                // Fallback: try exact normalised match on raw input
+                const key = norm(input.value);
+                if (ALL_SYMPTOMS.includes(key)) { addChip(key); }
+            }
+            input.value = '';
+            closeDropdown();
+
+        } else if (e.key === 'Escape') {
+            closeDropdown();
+
+        } else if (e.key === 'Backspace' && input.value === '' && selected.length > 0) {
+            removeChip(selected[selected.length - 1]);
+        }
+    });
+
+    document.addEventListener('click', e => {
+        if (!box.contains(e.target) && e.target !== dropdown) closeDropdown();
+    });
+
+    clearBtn.addEventListener('click', clearAll);
+
+    form.addEventListener('submit', e => {
+        if (selected.length === 0) {
+            e.preventDefault();
+            input.focus();
+            box.style.borderColor = '#dc3545';
+            box.style.boxShadow   = '0 0 0 .25rem rgba(220,53,69,.15)';
+            setTimeout(() => { box.style.borderColor = ''; box.style.boxShadow = ''; }, 2200);
+            return;
+        }
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing…';
+    });
+
+})();
+</script>
+{% endblock %}

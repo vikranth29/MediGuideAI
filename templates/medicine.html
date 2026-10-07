@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="py-5">
+
+    <div class="container">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('index') }}">Home</a>
+                </li>
+
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                </li>
+
+                <li class="breadcrumb-item active">
+                    Medicine Information
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Heading -->
+
+        <div class="text-center mb-5">
+
+            <span class="badge bg-primary px-3 py-2 mb-3">
+
+                <i class="bi bi-capsule"></i>
+
+                Medicine Information
+
+            </span>
+
+            <h1 class="fw-bold">
+
+                Medicine Search
+
+            </h1>
+
+            <p class="text-muted">
+
+                Search medicine details including dosage,
+                uses and precautions.
+
+            </p>
+
+        </div>
+
+        <!-- Search Box -->
+
+        <div class="card shadow border-0 rounded-4 mb-5">
+
+            <div class="card-body">
+
+                <form>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+
+                            <i class="bi bi-search"></i>
+
+                        </span>
+
+                        <input type="text" class="form-control" placeholder="Search medicine...">
+
+                        <button class="btn btn-primary">
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <!-- Sample Medicine Card -->
+
+        <div class="card shadow border-0 rounded-4">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between">
+
+                    <h3 class="fw-bold">
+
+                        Paracetamol
+
+                    </h3>
+
+                    <span class="badge bg-success">
+
+                        Pain Reliever
+
+                    </span>
+
+                </div>
+
+                <hr>
+
+                <h5 class="text-primary">
+
+                    Uses
+
+                </h5>
+
+                <p>
+
+                    Used to reduce fever and relieve mild to moderate pain.
+
+                </p>
+
+                <h5 class="text-primary">
+
+                    Dosage
+
+                </h5>
+
+                <p>
+
+                    Adults: 500mg to 1000mg every 4–6 hours.
+                    Maximum 4000mg per day.
+
+                </p>
+
+                <h5 class="text-primary">
+
+                    Precautions
+
+                </h5>
+
+                <ul>
+
+                    <li>Do not exceed the recommended dose.</li>
+
+                    <li>Avoid alcohol while taking this medicine.</li>
+
+                    <li>Consult a doctor if symptoms continue.</li>
+
+                </ul>
+
+                <div class="alert alert-warning">
+
+                    <strong>Disclaimer:</strong>
+
+                    This information is for educational purposes only.
+                    Always consult a qualified healthcare professional
+                    before taking any medication.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

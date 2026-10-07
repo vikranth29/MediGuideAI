@@ -1,0 +1,477 @@
+{% extends 'base.html' %}
+
+{#
+  MediGuide AI - Registration Page (register.html)
+  -------------------------------------------------
+  A professional, fully-functional account creation form.
+  - Extends base.html for consistent layout.
+  - Submits to /register (POST) handled by Flask backend.
+  - Displays server-side flash messages (success / danger).
+  - Client-side JS validation gives instant feedback before submission.
+  - form_data dict repopulates fields on validation failure (no retype).
+#}
+
+{% block extra_css %}
+<style>
+  /* ── Registration page scoped styles ─────────────────────── */
+
+  /* Full-page gradient background */
+  .register-section {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 45%, #ffffff 100%);
+    padding: 3rem 0;
+  }
+
+  /* Card with subtle border + floating shadow */
+  .register-card {
+    border: 1px solid rgba(13, 110, 253, 0.10);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 40px rgba(13, 110, 253, 0.10), 0 2px 8px rgba(0,0,0,0.04);
+    background: #ffffff;
+    transition: box-shadow 0.3s ease;
+  }
+  .register-card:hover {
+    box-shadow: 0 16px 56px rgba(13, 110, 253, 0.14), 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  /* Brand icon circle */
+  .brand-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd 0%, #0284c7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.30);
+  }
+
+  /* Input focus glow */
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  }
+
+  /* Password toggle button */
+  .input-group .btn-password-toggle {
+    border: 1px solid #dee2e6;
+    border-left: none;
+    background: #f8fafc;
+    color: #6c757d;
+    transition: color 0.2s;
+  }
+  .input-group .btn-password-toggle:hover { color: #0d6efd; }
+
+  /* Password strength bar */
+  .strength-bar {
+    height: 4px;
+    border-radius: 2px;
+    transition: width 0.4s ease, background-color 0.4s ease;
+    width: 0%;
+  }
+
+  /* Submit button */
+  .btn-register {
+    background: linear-gradient(135deg, #0d6efd 0%, #0284c7 100%);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+  }
+  .btn-register:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.35);
+    color: #fff;
+  }
+  .btn-register:active { transform: translateY(0); }
+  .btn-register:disabled { opacity: 0.7; cursor: not-allowed; }
+
+  /* Divider line */
+  .divider-text {
+    position: relative;
+    text-align: center;
+    color: #adb5bd;
+    font-size: 0.8rem;
+  }
+  .divider-text::before,
+  .divider-text::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background: #dee2e6;
+  }
+  .divider-text::before { left: 0; }
+  .divider-text::after  { right: 0; }
+
+  /* Security badge strip */
+  .security-strip {
+    background: rgba(13, 110, 253, 0.05);
+    border: 1px solid rgba(13, 110, 253, 0.12);
+    border-radius: 0.75rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.78rem;
+    color: #495057;
+  }
+
+  /* Checkbox custom accent */
+  .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  /* Validation feedback */
+  .was-validated .form-control:valid  { border-color: #198754; }
+  .was-validated .form-control:invalid { border-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="register-section">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none text-primary">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Create Account</li>
+      </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+
+        <!-- ════════════════════════════════════════════ -->
+        <!-- REGISTRATION CARD                           -->
+        <!-- ════════════════════════════════════════════ -->
+        <div class="register-card p-4 p-md-5">
+
+          <!-- Header -->
+          <div class="text-center mb-4">
+            <div class="brand-icon-circle">
+              <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <h1 class="h3 fw-bold mb-1" style="font-family: 'Outfit', sans-serif; letter-spacing: -0.02em;">
+              Create Your Account
+            </h1>
+            <p class="text-secondary small mb-0">
+              Join MediGuide AI for intelligent, personalized healthcare assistance.
+            </p>
+          </div>
+
+          <!-- Security assurance strip -->
+          <div class="security-strip d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-shield-lock-fill text-primary flex-shrink-0"></i>
+            <span>Your data is encrypted and securely stored. We never share your information.</span>
+          </div>
+
+          <!-- ════════════════════════════════════ -->
+          <!-- REGISTRATION FORM                   -->
+          <!-- ════════════════════════════════════ -->
+          <!--
+            action  → POST to /register (Flask backend)
+            novalidate → we control validation display ourselves via JS + server
+          -->
+          <form id="registerForm"
+                action="{{ url_for('register') }}"
+                method="POST"
+                novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div class="row g-3">
+
+              <!-- ── Full Name ──────────────────────── -->
+              <div class="col-12">
+                <label for="full_name" class="form-label fw-semibold">
+                  <i class="bi bi-person me-1 text-primary"></i>Full Name
+                </label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg bg-light"
+                  id="full_name"
+                  name="full_name"
+                  placeholder="e.g. Jane Smith"
+                  value="{{ form_data.get('full_name', '') }}"
+                  autocomplete="name"
+                  required
+                  minlength="2">
+                <div class="invalid-feedback">Please enter your full name (min. 2 characters).</div>
+              </div>
+
+              <!-- ── Email Address ──────────────────── -->
+              <div class="col-12">
+                <label for="email" class="form-label fw-semibold">
+                  <i class="bi bi-envelope me-1 text-primary"></i>Email Address
+                </label>
+                <input
+                  type="email"
+                  class="form-control form-control-lg bg-light"
+                  id="email"
+                  name="email"
+                  placeholder="you@example.com"
+                  value="{{ form_data.get('email', '') }}"
+                  autocomplete="email"
+                  required>
+                <div class="invalid-feedback">Please enter a valid email address.</div>
+              </div>
+
+              <!-- ── Password ───────────────────────── -->
+              <div class="col-12 col-md-6">
+                <label for="password" class="form-label fw-semibold">
+                  <i class="bi bi-lock me-1 text-primary"></i>Password
+                </label>
+                <div class="input-group">
+                  <input
+                    type="password"
+                    class="form-control form-control-lg bg-light"
+                    id="password"
+                    name="password"
+                    placeholder="Min. 8 characters"
+                    autocomplete="new-password"
+                    required
+                    minlength="8">
+                  <button class="btn btn-password-toggle"
+                          type="button"
+                          id="togglePassword"
+                          title="Show / hide password"
+                          aria-label="Toggle password visibility">
+                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                  </button>
+                  <div class="invalid-feedback">Password must be at least 8 characters.</div>
+                </div>
+                <!-- Strength indicator -->
+                <div class="mt-2">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="small text-secondary">Password strength</span>
+                    <span class="small fw-semibold" id="strengthLabel" style="color:#adb5bd;">—</span>
+                  </div>
+                  <div class="bg-light rounded" style="height:4px;">
+                    <div class="strength-bar rounded" id="strengthBar"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ── Confirm Password ───────────────── -->
+              <div class="col-12 col-md-6">
+                <label for="confirm_password" class="form-label fw-semibold">
+                  <i class="bi bi-lock-fill me-1 text-primary"></i>Confirm Password
+                </label>
+                <div class="input-group">
+                  <input
+                    type="password"
+                    class="form-control form-control-lg bg-light"
+                    id="confirm_password"
+                    name="confirm_password"
+                    placeholder="Repeat password"
+                    autocomplete="new-password"
+                    required>
+                  <button class="btn btn-password-toggle"
+                          type="button"
+                          id="toggleConfirm"
+                          title="Show / hide password"
+                          aria-label="Toggle confirm password visibility">
+                    <i class="bi bi-eye" id="toggleConfirmIcon"></i>
+                  </button>
+                  <div class="invalid-feedback" id="confirmFeedback">Passwords do not match.</div>
+                </div>
+              </div>
+
+              <!-- ── Account Role ────────────────────── -->
+              <div class="col-12">
+                <label for="role" class="form-label fw-semibold">
+                  <i class="bi bi-shield-lock me-1 text-primary"></i>Account Role
+                </label>
+                <select class="form-select form-select-lg bg-light" id="role" name="role">
+                  <option value="user" {% if form_data.get('role', 'user') == 'user' %}selected{% endif %}>Standard User (Personal Healthcare)</option>
+                  <option value="admin" {% if form_data.get('role') == 'admin' %}selected{% endif %}>Administrator (Platform Management)</option>
+                </select>
+                <div class="form-text text-muted">Select 'Standard User' by default, or 'Administrator' for administrative access.</div>
+              </div>
+
+              <!-- ── Terms & Conditions ─────────────── -->
+              <div class="col-12 mt-1">
+                <div class="form-check">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         id="termsCheck"
+                         required>
+                  <label class="form-check-label small text-secondary" for="termsCheck">
+                    I agree to the
+                    <a href="#" class="text-primary text-decoration-none fw-semibold">Terms of Service</a>
+                    and
+                    <a href="#" class="text-primary text-decoration-none fw-semibold">Privacy Policy</a>.
+                  </label>
+                  <div class="invalid-feedback">You must accept the terms to continue.</div>
+                </div>
+              </div>
+
+              <!-- ── Submit Button ──────────────────── -->
+              <div class="col-12 mt-2">
+                <button type="submit"
+                        id="registerBtn"
+                        class="btn btn-register btn-lg w-100">
+                  <span id="registerBtnText">
+                    <i class="bi bi-person-check me-2"></i>Create Free Account
+                  </span>
+                  <span id="registerSpinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Creating account…
+                  </span>
+                </button>
+              </div>
+
+            </div><!-- /row -->
+          </form><!-- /form -->
+
+          <!-- Divider -->
+          <div class="divider-text my-4">or</div>
+
+          <!-- Sign-in redirect -->
+          <div class="text-center">
+            <p class="small text-secondary mb-0">
+              Already have an account?
+              <a href="{{ url_for('login') }}"
+                 class="text-primary fw-bold text-decoration-none">
+                Sign In <i class="bi bi-arrow-right"></i>
+              </a>
+            </p>
+          </div>
+
+        </div><!-- /register-card -->
+
+        <!-- Feature hint strip below card -->
+        <div class="row g-2 mt-3 text-center">
+          <div class="col-4">
+            <div class="small text-secondary"><i class="bi bi-robot text-primary me-1"></i>AI Symptom Checker</div>
+          </div>
+          <div class="col-4">
+            <div class="small text-secondary"><i class="bi bi-capsule text-primary me-1"></i>Medicine Info</div>
+          </div>
+          <div class="col-4">
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /row -->
+  </div><!-- /container -->
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/**
+ * MediGuide AI - Registration Page JavaScript
+ * -------------------------------------------
+ * 1. Password visibility toggles (for both fields)
+ * 2. Live password strength indicator
+ * 3. Client-side confirm-password match check
+ * 4. Full Bootstrap 5 validation before submission
+ * 5. Loading spinner on submit to prevent double-click
+ */
+
+// ── 1. Password visibility toggles ──────────────────────────────────────────
+function setupToggle(btnId, iconId, inputId) {
+  const btn   = document.getElementById(btnId);
+  const icon  = document.getElementById(iconId);
+  const input = document.getElementById(inputId);
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+}
+setupToggle('togglePassword', 'togglePasswordIcon', 'password');
+setupToggle('toggleConfirm',  'toggleConfirmIcon',  'confirm_password');
+
+// ── 2. Password strength indicator ──────────────────────────────────────────
+const passwordInput  = document.getElementById('password');
+const strengthBar    = document.getElementById('strengthBar');
+const strengthLabel  = document.getElementById('strengthLabel');
+
+const strengthLevels = [
+  { width: '0%',   color: '#adb5bd', label: '—' },           // empty
+  { width: '25%',  color: '#dc3545', label: 'Weak' },        // 1–3 chars
+  { width: '50%',  color: '#fd7e14', label: 'Fair' },        // 4–7 chars
+  { width: '75%',  color: '#ffc107', label: 'Good' },        // 8–11 chars
+  { width: '100%', color: '#198754', label: 'Strong' },      // 12+ chars
+];
+
+function calculateStrength(password) {
+  if (!password) return 0;
+  let score = 0;
+  if (password.length >= 8)  score++;
+  if (password.length >= 12) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  return Math.min(4, Math.ceil(score * 4 / 5));
+}
+
+passwordInput.addEventListener('input', () => {
+  const level = calculateStrength(passwordInput.value);
+  const s = strengthLevels[level];
+  strengthBar.style.width           = s.width;
+  strengthBar.style.backgroundColor = s.color;
+  strengthLabel.textContent         = s.label;
+  strengthLabel.style.color         = s.color;
+});
+
+// ── 3. Live confirm-password match ──────────────────────────────────────────
+const confirmInput   = document.getElementById('confirm_password');
+const confirmFeedback = document.getElementById('confirmFeedback');
+
+function checkPasswordsMatch() {
+  if (!confirmInput.value) return;                          // don't flag empty
+  const match = passwordInput.value === confirmInput.value;
+  confirmInput.setCustomValidity(match ? '' : 'Passwords do not match.');
+  confirmFeedback.textContent = match ? '' : 'Passwords do not match.';
+}
+
+confirmInput.addEventListener('input', checkPasswordsMatch);
+passwordInput.addEventListener('input', checkPasswordsMatch);
+
+// ── 4 & 5. Validate + loading spinner on submit ──────────────────────────────
+const form        = document.getElementById('registerForm');
+const registerBtn = document.getElementById('registerBtn');
+const btnText     = document.getElementById('registerBtnText');
+const btnSpinner  = document.getElementById('registerSpinner');
+
+form.addEventListener('submit', function (e) {
+  // Re-run match check right before submission
+  checkPasswordsMatch();
+
+  // Trigger Bootstrap validation UI
+  form.classList.add('was-validated');
+
+  if (!form.checkValidity()) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Scroll to first invalid field
+    const firstInvalid = form.querySelector(':invalid');
+    if (firstInvalid) firstInvalid.focus();
+    return;
+  }
+
+  // Valid — show loading state to prevent double-submit
+  registerBtn.disabled = true;
+  btnText.classList.add('d-none');
+  btnSpinner.classList.remove('d-none');
+});
+
+// ── Auto-focus first empty field ────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const fullNameInput = document.getElementById('full_name');
+  if (fullNameInput && !fullNameInput.value) fullNameInput.focus();
+});
+</script>
+{% endblock %}

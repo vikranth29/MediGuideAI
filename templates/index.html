@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- ========================================================================
+     1. HERO SECTION
+     ======================================================================== -->
+<section class="hero-section bg-hero-gradient">
+
+    <!-- Animated background blobs -->
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+    <div class="hero-blob hero-blob-3"></div>
+
+    <!-- Floating particles -->
+    <div class="hero-particles"></div>
+
+    <div class="container py-5 position-relative z-1">
+        <div class="row align-items-center gy-5 py-lg-4">
+
+            <!-- Hero Text -->
+            <div class="col-lg-6 text-center text-lg-start reveal">
+
+                <div class="hero-badge mb-4">
+                    <span class="hero-badge-dot"></span>
+                    AI-Powered Smart Healthcare Platform
+                </div>
+
+                <h1 class="hero-title fw-bold mb-4">
+                    Your Intelligent<br>
+                    <span class="text-primary-gradient">MediGuide AI</span><br>
+                    Health Companion
+                </h1>
+
+                <p class="lead text-secondary mb-5 fs-5 fw-normal lh-lg">
+                    Get instant AI-driven symptom analysis, medicine info,
+                    hospital locator &amp; 24/7 medical guidance — all in one
+                    beautifully designed platform.
+                </p>
+
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mb-5">
+                    <a href="{{ url_for('dashboard') }}"
+                       class="btn btn-gradient-primary btn-lg rounded-pill px-5 py-3 shadow fw-semibold">
+                        <i class="bi bi-speedometer2 me-2"></i>Open Dashboard
+                    </a>
+                    <a href="{{ url_for('symptom_checker') }}"
+                       class="btn btn-outline-primary btn-lg rounded-pill px-5 py-3 fw-semibold">
+                        <i class="bi bi-activity me-2"></i>Check Symptoms
+                    </a>
+                </div>
+
+                <!-- Trust row -->
+                <div class="d-flex flex-wrap gap-4 justify-content-center justify-content-lg-start">
+                    <div class="d-flex align-items-center gap-2 text-secondary small fw-semibold">
+                        <i class="bi bi-shield-check-fill text-success fs-5"></i> Safe & Secure
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-secondary small fw-semibold">
+                        <i class="bi bi-clock-fill text-primary fs-5"></i> 24/7 Available
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-secondary small fw-semibold">
+                        <i class="bi bi-lightning-charge-fill text-warning fs-5"></i> Instant Results
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Glass Card -->
+            <div class="col-lg-6 text-center reveal reveal-delay-2">
+                <div class="custom-glass-card rounded-4 p-4 text-start mx-auto max-w-500">
+
+                    <!-- Card Header -->
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="brand-icon hero-icon-pulse" style="width:54px;height:54px;border-radius:16px;font-size:1.6rem;">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">MediGuide AI Assistant</h5>
+                            <span class="small text-muted">
+                                <span class="chat-status-dot"></span> Online & Ready
+                            </span>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="badge bg-success-soft text-success rounded-pill px-3 py-2">
+                                <i class="bi bi-check-circle-fill me-1"></i> Operational
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Simulated chat preview -->
+                    <div class="p-3 rounded-3 mb-3" style="background:#f0f6ff;">
+                        <div class="d-flex gap-2 align-items-start mb-3">
+                            <div class="flex-shrink-0" style="width:32px;height:32px;border-radius:10px;background:var(--gradient-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.9rem;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="rounded-3 p-2 px-3 bg-white border border-primary-subtle small lh-sm" style="font-size:.82rem;">
+                                Hello! I'm MediGuide AI. Describe your symptoms and I'll guide you.
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 align-items-start justify-content-end">
+                            <div class="rounded-3 p-2 px-3 small lh-sm text-white" style="font-size:.82rem;background:var(--gradient-primary);">
+                                I have a headache and fever since yesterday.
+                            </div>
+                            <div class="flex-shrink-0" style="width:32px;height:32px;border-radius:10px;background:var(--slate-200);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--slate-600);">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA strip -->
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 border border-primary-subtle"
+                         style="background:rgba(37,99,235,.04);">
+                        <i class="bi bi-lightning-charge-fill text-warning fs-3"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold" style="font-size:.9rem;">Instant Guidance</h6>
+                            <small class="text-muted">AI-powered, available 24 / 7</small>
+                        </div>
+                        <a href="{{ url_for('chatbot') }}" class="btn btn-gradient-primary btn-sm rounded-pill ms-auto px-3">
+                            Chat Now <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================================
+     2. STATS STRIP
+     ======================================================================== -->
+<div class="stats-strip">
+    <div class="container">
+        <div class="row g-3 text-center">
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number" data-count="50000" data-suffix="+">50,000+</span>
+                <span class="stat-label">Health Checks</span>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number" data-count="132" data-suffix="+">132+</span>
+                <span class="stat-label">Diseases Covered</span>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number" data-count="5000" data-suffix="+">5,000+</span>
+                <span class="stat-label">Medicines Listed</span>
+            </div>
+            <div class="col-6 col-md-3 stat-item">
+                <span class="stat-number" data-count="99" data-suffix="%">99%</span>
+                <span class="stat-label">Uptime Reliability</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================
+     3. FEATURE MODULES
+     ======================================================================== -->
+<section class="py-5 bg-white">
+    <div class="container py-4">
+
+        <div class="text-center mb-5 reveal">
+            <span class="section-badge section-badge-primary">
+                <i class="bi bi-grid-fill"></i> Feature Modules
+            </span>
+            <h2 class="section-title">Comprehensive Health Tools</h2>
+            <p class="section-subtitle">
+                Everything you need to monitor, understand, and manage your health — powered by AI.
+            </p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+
+            <!-- Symptom Checker -->
+            <div class="col-12 col-md-6 col-lg-4 reveal reveal-delay-1">
+                <div class="feature-card p-4 h-100 d-flex flex-column">
+                    <div class="feature-icon-wrapper bg-primary-soft text-primary mb-3">
+                        <i class="bi bi-clipboard2-pulse-fill"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2 h5">AI Symptom Checker</h4>
+                    <p class="text-secondary small flex-grow-1 mb-4">
+                        Input your current symptoms to receive instant, intelligent analysis
+                        and preliminary health guidance powered by machine learning.
+                    </p>
+                    <a href="{{ url_for('symptom_checker') }}"
+                       class="btn btn-gradient-primary rounded-pill w-100 fw-semibold">
+                        Open Module <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Medicine Info -->
+            <div class="col-12 col-md-6 col-lg-4 reveal reveal-delay-2">
+                <div class="feature-card p-4 h-100 d-flex flex-column">
+                    <div class="feature-icon-wrapper bg-teal-soft text-info mb-3">
+                        <i class="bi bi-capsule"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2 h5">Medicine Information</h4>
+                    <p class="text-secondary small flex-grow-1 mb-4">
+                        Search essential drug details, recommended dosages, side effects,
+                        and safety guidelines for thousands of medicines.
+                    </p>
+                    <a href="{{ url_for('medicine') }}"
+                       class="btn btn-outline-primary rounded-pill w-100 fw-semibold">
+                        Open Module <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <!-- Emergency Contacts -->
+            <div class="col-12 col-md-6 col-lg-4 reveal reveal-delay-1">
+                <div class="feature-card feature-card-danger p-4 h-100 d-flex flex-column">
+                    <div class="feature-icon-wrapper bg-danger-soft text-danger mb-3">
+                        <i class="bi bi-telephone-plus-fill"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2 h5">Emergency Contacts</h4>
+                    <p class="text-secondary small flex-grow-1 mb-4">
+                        Quick access to national emergency helplines, ambulance dispatches,
+                        and urgent medical assistance numbers.
+                    </p>
+                    <a href="{{ url_for('emergency') }}"
+                       class="btn btn-outline-danger rounded-pill w-100 fw-semibold">
+                        Open Module <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI Medical Chatbot -->
+            <div class="col-12 col-md-6 col-lg-4 reveal reveal-delay-2">
+                <div class="feature-card p-4 h-100 d-flex flex-column">
+                    <div class="feature-icon-wrapper bg-primary-soft text-primary mb-3">
+                        <i class="bi bi-chat-dots-fill"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2 h5">AI Medical Chatbot</h4>
+                    <p class="text-secondary small flex-grow-1 mb-4">
+                        Engage in 24/7 interactive conversations with our AI assistant
+                        for health inquiries, wellness tips, and medical FAQs.
+                    </p>
+                    <a href="{{ url_for('chatbot') }}"
+                       class="btn btn-gradient-primary rounded-pill w-100 fw-semibold">
+                        Open Module <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Report Analyzer -->
+            <div class="col-12 col-md-6 col-lg-4 reveal reveal-delay-3">
+                <div class="feature-card p-4 h-100 d-flex flex-column" style="border-color:rgba(13,148,136,.2);">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="feature-icon-wrapper bg-teal-soft" style="color:#0d9488;">
+                            <i class="bi bi-file-earmark-medical-fill"></i>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-1 fw-bold"
+                              style="background:rgba(13,148,136,.1);color:#0d9488;font-size:.7rem;">New</span>
+                    </div>
+                    <h4 class="fw-bold mb-2 h5">Report Analyzer</h4>
+                    <p class="text-secondary small flex-grow-1 mb-4">
+                        Upload blood tests, X-rays, prescriptions, or any lab report and get
+                        instant AI-powered findings, risk flags, and recommendations.
+                    </p>
+                    <a href="{{ url_for('report_analyzer') }}"
+                       class="btn rounded-pill w-100 fw-semibold"
+                       style="background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;border:none;">
+                        Open Module <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================================
+     4. DAILY HEALTH TIPS
+     ======================================================================== -->
+<section class="py-5 bg-light-gradient">
+    <div class="container py-4">
+
+        <div class="text-center mb-5 reveal">
+            <span class="section-badge section-badge-success">
+                <i class="bi bi-heart-pulse-fill"></i> Wellness Guide
+            </span>
+            <h2 class="section-title">Daily Health Tips</h2>
+            <p class="section-subtitle">
+                Simple, actionable habits to maintain your physical and mental well-being every day.
+            </p>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-12 col-md-4 reveal reveal-delay-1">
+                <div class="tip-card tip-card-hydration p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="tip-icon-shape bg-info-soft text-info">
+                            <i class="bi bi-droplet-fill"></i>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-2" style="background:rgba(14,165,233,.1);color:#0ea5e9;">Hydration</span>
+                    </div>
+                    <h5 class="fw-bold mb-2">Stay Hydrated</h5>
+                    <p class="text-secondary small mb-0 flex-grow-1">
+                        Drink at least 8–10 glasses of water daily to maintain optimal
+                        energy levels, support digestion, and keep your body refreshed throughout the day.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 reveal reveal-delay-2">
+                <div class="tip-card tip-card-nutrition p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="tip-icon-shape bg-success-soft text-success">
+                            <i class="bi bi-apple"></i>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-2" style="background:rgba(34,197,94,.1);color:#16a34a;">Nutrition</span>
+                    </div>
+                    <h5 class="fw-bold mb-2">Balanced Nutrition</h5>
+                    <p class="text-secondary small mb-0 flex-grow-1">
+                        Incorporate fiber-rich vegetables, fruits, lean proteins, and whole grains
+                        into your daily meals to boost immunity and maintain heart health.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 reveal reveal-delay-3">
+                <div class="tip-card tip-card-exercise p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="tip-icon-shape" style="background:rgba(139,92,246,.1);color:#8b5cf6;width:54px;height:54px;display:flex;align-items:center;justify-content:center;border-radius:16px;font-size:1.6rem;">
+                            <i class="bi bi-activity"></i>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-2" style="background:rgba(139,92,246,.1);color:#8b5cf6;">Exercise</span>
+                    </div>
+                    <h5 class="fw-bold mb-2">Regular Activity</h5>
+                    <p class="text-secondary small mb-0 flex-grow-1">
+                        Engage in at least 30 minutes of moderate exercise daily — such as brisk
+                        walking or jogging — to strengthen your cardiovascular system and improve mood.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================================
+     5. CTA SECTION
+     ======================================================================== -->
+<section class="py-5 bg-white">
+    <div class="container py-3 reveal">
+        <div class="mission-card p-5 text-center">
+            <i class="bi bi-heart-pulse-fill display-3 text-white-50 mb-3"></i>
+            <h2 class="fw-bold text-white mb-3">Ready to Take Control of Your Health?</h2>
+            <p class="text-white-50 mb-4 fs-5">
+                Join thousands using MediGuide AI to make smarter, faster health decisions.
+            </p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{{ url_for('register') }}"
+                   class="btn btn-light btn-lg rounded-pill px-5 fw-bold text-primary shadow">
+                    Get Started Free <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+                <a href="{{ url_for('about') }}"
+                   class="btn btn-outline-light btn-lg rounded-pill px-5 fw-semibold">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
